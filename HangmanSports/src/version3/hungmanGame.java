@@ -1,8 +1,6 @@
 package version3;
 
-import java.util.ArrayList;
-
-import javafx.animation.PathTransition;
+import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -21,9 +19,9 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class hungmanGame extends Application{
-	final String[] words = {"words", "that", "menu", "like", "life", "program"
-			, "java", "free", "world", "center", "top", "button", "application"};
-	
+	final String[] words = {"words", "that", "menu", "like", "life", "program",
+							"java", "free", "world", "center", "top", "button", "application"};
+	//圆直径
 	final int radius = 30;
 	private Arc arc = new Arc(100, 400 + 200, 50, 30, 0, 180);	
 	private Line line1 = new Line(100, 570, 100, 20);
@@ -39,41 +37,55 @@ public class hungmanGame extends Application{
 							110 + radius * Math.sin(Math.toRadians(45)), 400, 200);
 	private Line line7 = new Line(300, 250, 200, 350);
 	private Line line8 = new Line(300, 250, 400, 350);
-	private Line[] list = {line3, line4, line5, line6, line7, line8};
 	
+	//提示框
 	private Text text1 = new Text(200, 400, "");
 	private Text text2 = new Text(200, 450, "Miss letters: ");
 	
-	private Arc pathOfCircle = new Arc(300, 20, 80, 90, 210, 125);
-	private Arc pathOfLine3 = new Arc(300, 20, 80, 30, 210, 125);
-	private Arc pathOfLine4 = new Arc(300, 20, 80, 90, 210, 125);
-	private Arc pathOfLine5 = new Arc(300, 20, 80, 90, 210, 125);
-	private Arc pathOfLine6 = new Arc(300, 20, 80, 90, 210, 125);
-	private Arc pathOfLine7 = new Arc(300, 20, 80, 90, 210, 125);
-	private Arc pathOfLine8 = new Arc(300, 20, 80, 90, 210, 125);
-	private Arc[] pathOfSwing = {pathOfLine3, pathOfLine4, pathOfLine5, 
-									pathOfLine6, pathOfLine7, pathOfLine8};
+	//摇摆设定
+	private double leftY = 110 + radius * Math.sin(Math.toRadians(45));
+	private double line3Radius = 60;
+	private double circleRadius = 90;
+	private double line4StartRadius = 120;
+	private double line4Radius = 230;
+	private double line5StartRadius = leftY - 20;
+	private double line6StartRadius = line5StartRadius;
+	private double line7StartRadius = line4Radius;
+	private double line8StartRadius = line4Radius;
+	private double leftAngle = 120;
+	private double rightAngle = 60;
+	private double angle = leftAngle; // 从左边开始
+	private double angleDelta = 5; // 摇摆角度差
 	
-//	private PathTransition[] pt = new PathTransition[8];
+	private Timeline animation;
 	
+	//选取的单词
 	private String word = null;
+	//显示的结果
 	private StringBuilder replacedWord = new StringBuilder();
+	//错误次数
 	private int wrongTimes = 0;
+	//正确次数
 	private int correct = 0;
 
     @Override
 	public void start(Stage stage) throws Exception {
+    	//设置UI
+    	setUI();
+    	//开始
     	reStart();
     	Pane pane = new Pane();
     	pane.getChildren().addAll(arc,line1,line2,line3,line4,circle,line5,
     			line6,line7,line8,text1,text2);
     	
+    	//设置猜测字母
     	setWord();
+    	
     	text1.setText("Guess a word > " + replacedWord);
+    	
     	pane.setOnKeyPressed(e ->{
         	guessWord(e);
-    	});
-    	
+    	});    	
     	
     	stage.setScene(new Scene(pane, 600, 600));
     	stage.show();
@@ -93,6 +105,14 @@ public class hungmanGame extends Application{
 		text2.setFont(Font.font("Courier", FontWeight.BLACK, FontPosture.REGULAR, 20));
     }
     
+    //摇摆设置
+    public void swing(){
+    	animation = new Timeline(
+				new KeyFrame(Duration.millis(50), e ->move()));
+		animation.setCycleCount(Timeline.INDEFINITE);
+		play();
+	}
+    
     //随机获取单词并设置为****格式
     public void setWord(){
     	replacedWord.delete(0, replacedWord.length());
@@ -103,10 +123,11 @@ public class hungmanGame extends Application{
     }
     
     public void guessWord(KeyEvent e){
+    	//获取猜测字母
     	char key = e.getText().charAt(0);
     	
     	if(wrongTimes < 7 && correct < word.length()){
-    		if(replacedWord.indexOf(key + "") >= 0){
+    		if(replacedWord.indexOf(key + "") >= 0){//猜测字母已经猜过
     			
     		}else if(word.indexOf(key) < 0){//单词中没有用户输入字母
 				wrongTimes++;
@@ -119,22 +140,26 @@ public class hungmanGame extends Application{
 				}
 			}
 	    	
+    		//打印当前猜测结果
 	    	if(wrongTimes < 7 && correct < word.length()){
 		    	text1.setText("Guess a word > " + replacedWord);
 		    	
 		    	if(existed(key) < 0){
+		    		//输出猜错字母
 		    		text2.setText(text2.getText() + e.getText().charAt(0));
 	    		}
 	    	}else{
-//	    		startSwing();
 	    		text1.setText("The word is: " + word);
 	        	text2.setText("To continiu the game, press ENTER");
+	        	//开始摇摆
+	        	swing();
 	    	}
+	    	
+	    	//展示人物
 	    	showUI();
-    	}else{
-//    		setPathOfSwing();
+    	}else{//继续下一轮游戏
     		switch(e.getCode()){
-    		case ENTER:reStart();hideUI();break;
+    		case ENTER:reStart();hideUI();pause();break;
     		}
     	}    	
     }
@@ -146,18 +171,19 @@ public class hungmanGame extends Application{
     
     //重新开始游戏
     public void reStart(){
-    	setUI();
+    	//隐藏人物
     	hideUI();
+    	//设置下一个单词
     	setWord();
     	correct = 0;
     	wrongTimes = 0;
     	text1.setText("Guess a word > " + replacedWord);
+    	text2.setVisible(false);//隐藏提示框
     	text2.setText("Miss letters: ");
     }
     
     //隐藏小人
     public void hideUI(){
-    	text2.setVisible(false);
     	line3.setVisible(false);
     	line4.setVisible(false);
     	line5.setVisible(false);
@@ -167,11 +193,14 @@ public class hungmanGame extends Application{
     	circle.setVisible(false);
     }
     
-    //展示小人
+    //展示人物
     public void showUI(){
+    	//猜单词成功显示继续游戏提示
     	if(correct == word.length()){
     		text2.setVisible(true);
     	}
+    	
+    	//猜错单词显示人物并打印出错误字母信息
     	switch(wrongTimes){
     	case 1: line3.setVisible(true);text2.setVisible(true);break;
     	case 2: circle.setVisible(true);break;
@@ -183,37 +212,75 @@ public class hungmanGame extends Application{
     	}
     }
     
-//    //错误次数为7,开始摇摆
-//    public void setPathOfSwing(){
-////    	PathTransition[] ptOfCircle = new PathTransition[8];
-//    	for(int i=0; i<pathOfSwing.length; i++){
-//    		pt[i].setDuration(Duration.millis(500));    	
-//	    	pt[i].setPath(pathOfSwing[i]);
-//	    	pt[i].setNode(list[i]);
-//	    	pt[i].setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
-//	    	pt[i].setCycleCount(Timeline.INDEFINITE);
-//	    	pt[i].setAutoReverse(true);
-//    	}
-//    	pt[7].setPath(pathOfCircle);
-//    	pt[7].setNode(circle);
-//    	pt[7].setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
-//    	pt[7].setCycleCount(Timeline.INDEFINITE);
-//    	pt[7].setAutoReverse(true);
-//    }
-//    
-//    //开始摇摆
-//    public void startSwing(){
-//    	for(int i = 0; i < pt.length; i++){
-//    		pt[i].play();
-//    	}
-//    }
-//    
-//    //停止摇摆
-//    public void stopSwing(){
-//    	for(int i = 0; i < pt.length; i++){
-//    		pt[i].pause();
-//    	}
-//    }
+    //开始
+    public void play(){
+		animation.play();
+	}
+	
+    //暂停
+	public void pause(){
+		animation.pause();
+	}
+	
+	//人物摇摆
+	public void move(){
+		//摇摆中心
+		double x1 = 300;
+	    double y1 = 20;
+
+	    if (angle < rightAngle)
+	      angleDelta = 5; // 向左摇
+	    else if (angle > leftAngle)
+	      angleDelta = -5; // 向右摇
+
+	    //下一个位置
+	    angle += angleDelta;
+	    double x = x1 + line3Radius * Math.cos(Math.toRadians(angle));
+	    double y = y1 + line3Radius * Math.sin(Math.toRadians(angle));
+	    
+	    double x2 = x1 + circleRadius * Math.cos(Math.toRadians(angle));
+	    double y2 = y1 + circleRadius * Math.sin(Math.toRadians(angle));
+	    
+	    double startX3 = x1 + line4StartRadius * Math.cos(Math.toRadians(angle));
+	    double startY3 = y1 + line4StartRadius * Math.sin(Math.toRadians(angle));
+	    double x3 = x1 + line4Radius * Math.cos(Math.toRadians(angle));
+	    double y3 = y1 + line4Radius * Math.sin(Math.toRadians(angle));
+	    
+	    double startX5 = x1 + line5StartRadius * Math.cos(Math.toRadians(angle + 10));
+	    double startY5 = y1 + line5StartRadius * Math.sin(Math.toRadians(angle + 10));
+	    double endX5 = x1 + 220 * Math.cos(Math.toRadians(angle + 30));
+	    double endY5 = y1 + 220 * Math.sin(Math.toRadians(angle + 30));
+	    
+	    double startX6 = x1 + line6StartRadius * Math.cos(Math.toRadians(angle - 10));
+	    double startY6 = y1 + line6StartRadius * Math.sin(Math.toRadians(angle - 10));
+	    double endX6 = x1 + 220 * Math.cos(Math.toRadians(angle - 30));
+	    double endY6 = y1 + 220 * Math.sin(Math.toRadians(angle - 30));
+	    
+	    double startX7 = x1 + line7StartRadius * Math.cos(Math.toRadians(angle));
+	    double startY7 = y1 + line7StartRadius * Math.sin(Math.toRadians(angle));
+	    double endX7 = x1 + 330 * Math.cos(Math.toRadians(angle + 15));
+	    double endY7 = y1 + 330 * Math.sin(Math.toRadians(angle + 15));
+	    
+	    double startX8 = x1 + line8StartRadius * Math.cos(Math.toRadians(angle));
+	    double startY8 = y1 + line8StartRadius * Math.sin(Math.toRadians(angle));
+	    double endX8 = x1 + 330 * Math.cos(Math.toRadians(angle - 15));
+	    double endY8 = y1 + 330 * Math.sin(Math.toRadians(angle - 15));
+
+	    //设置下一个位置
+	    line3.setStartX(300);line3.setStartY(20);
+	    line3.setEndX(x);line3.setEndY(y);
+	    circle.setCenterX(x2);circle.setCenterY(y2);
+	    line4.setStartX(startX3);line4.setStartY(startY3);
+	    line4.setEndX(x3);line4.setEndY(y3);
+	    line5.setStartX(startX5);line5.setStartY(startY5);
+	    line5.setEndX(endX5);line5.setEndY(endY5);
+	    line6.setStartX(startX6);line6.setStartY(startY6);
+	    line6.setEndX(endX6);line6.setEndY(endY6);
+	    line7.setStartX(startX7);line7.setStartY(startY7);
+	    line7.setEndX(endX7);line7.setEndY(endY7);
+	    line8.setStartX(startX8);line8.setStartY(startY8);
+	    line8.setEndX(endX8);line8.setEndY(endY8);	    
+	}
     
     public static void main(String[] args) {
         launch(args);
