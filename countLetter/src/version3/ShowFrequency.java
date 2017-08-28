@@ -12,51 +12,51 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class ShowFrequency extends Application{
+	//定义一个字符数组存储26个英文字母
+	final String[] letters = {"A", "B", "C", "D", "E", "F",	"G", "H",
+			"I", "J", "K", "L", "M", "N", "O", "P", "Q",
+			"R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
+
+	//定义X轴
+	final CategoryAxis xAxis = new CategoryAxis();
+	//定义Y轴
+	final NumberAxis yAxis = new NumberAxis();
+	//创建柱状图
+	final BarChart<String,Number> bc =
+			new BarChart<String,Number>(xAxis,yAxis);
+	//从文件读取数据
+	private String data = null;
+
 	public void start(Stage primaryStage) throws Exception {
 		Scanner input = new Scanner(System.in);
-    	//定义一个字符数组存储26个英文字母
-    	final String[] letters = {"A", "B", "C", "D", "E", "F",	"G", "H", 
-    							"I", "J", "K", "L", "M", "N", "O", "P", "Q", 
-    							"R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
-    	
-    	//定义X轴
-    	final CategoryAxis xAxis = new CategoryAxis();
-    	//定义Y轴
-        final NumberAxis yAxis = new NumberAxis();
-        //创建柱状图
-        final BarChart<String,Number> bc = 
-            new BarChart<String,Number>(xAxis,yAxis);
-        
+
         //设置统计图标题，X轴名称，Y轴名称
         bc.setTitle("字符个数统计");
-        xAxis.setLabel("字母");       
+        xAxis.setLabel("字母");
         yAxis.setLabel("个数");
-        
-//        //向文件中写入数据
-//        System.out.println("请输入数据:");
-//        String writeData = input.nextLine();
-//        System.out.println("请文件名:");
-//        String fileName = input.nextLine();
-//        System.out.println(writeByte(writeData, fileName));
-        
-        //从文件读取数据
-        String data = readByte("test1");
-        
-        
+
+        //设置统计图最大高度
+        bc.setMaxHeight(300);
+
+		data = readByte("test1");
+
         //获取用户输入的字符串统计结果
         int[] numberOfLetters = countLetters(data);
-        
+
         //添加字符统计结果
         XYChart.Series series = new XYChart.Series();
         for(int i = 0; i < 26; i++){
         	series.getData().add(new XYChart.Data(letters[i], numberOfLetters[i]));
         }
 
+		BorderPane borderPane = new BorderPane();
+		borderPane.setCenter(bc);
 
-        Scene scene = new Scene(bc);
+        Scene scene = new Scene(borderPane);
         bc.getData().add(series);
         primaryStage.setScene(scene);
         primaryStage.show();
