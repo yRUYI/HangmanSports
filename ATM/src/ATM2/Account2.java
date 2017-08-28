@@ -62,13 +62,13 @@ public class Account2 extends Account1 implements Serializable{
 			
 			if(t.getType() == Transaction.WITHDRAW){//操作类型是否相同
 				withdrawedAmont += t.getAmount();
-				if(withdrawedAmont >= 5000){//已经取款数额大于或等于5000
+				if(withdrawedAmont > 5000){//已经取款数额大于5000
 					return true;
 				}
 			}
 		}
 		
-		return (withdrawedAmont + amount) >= 5000;
+		return (withdrawedAmont + amount) > 5000;
 	}
 
 	/**

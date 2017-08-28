@@ -754,7 +754,6 @@ public class AllPane extends virtualKeyboard{
                 alertInformation("与第1次输入的密码不同");
             }else if (op == 2){
                 alertInformation("密码应为6-10位数字或字母");
-                alertInformation("密码应为6-10位数字或字母");
             }else if (op == 3){
                 alertInformation("修改成功");
             }
@@ -837,6 +836,7 @@ public class AllPane extends virtualKeyboard{
         protected Button btOfTransaction = new Button("查看交易记录");
         protected Button btOfCheckBalance = new Button("查看余额");
         protected Button btOfChangePassword = new Button("修改密码");
+        protected Button btOfReturn = new Button("返回登录");
         //辅助面板
         protected BorderPane borderPane = new BorderPane();
 
@@ -858,10 +858,11 @@ public class AllPane extends virtualKeyboard{
             setButton(btOfWithdraw);
             setButton(btOfDeposit);
             setButton(btOfTransaction);
-            setButton(btOfChangePassword);;
+            setButton(btOfChangePassword);
+            setButton(btOfReturn);
 
             //添加组件
-            vBoxOfLeft.getChildren().addAll(btOfTransaction, btOfChangePassword, btOfExit);
+            vBoxOfLeft.getChildren().addAll(btOfTransaction, btOfChangePassword, btOfReturn);
             vBoxOfRight.getChildren().addAll(btOfCheckBalance, btOfWithdraw, btOfDeposit);
             borderPane.setBottom(hBoxOfKeyBoard);
             borderPane.setLeft(borderPaneOfLeft);
@@ -892,11 +893,13 @@ public class AllPane extends virtualKeyboard{
             btOfChangePassword.setOnAction(e ->{
                 new ChangePasswordPane();
             });
+            
+            btOfReturn.setOnAction(e ->{
+            	new LoginPane();
+            });
         }
 
     }
-
-
 
     @Override
     public void start(Stage primaryStage) throws Exception {
